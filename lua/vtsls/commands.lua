@@ -175,27 +175,46 @@ function M.rename_file(bufnr, res, rej)
 		if not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
 			return rej("Buffer is invalid")
 		end
-		local success = vim.loop.fs_rename(old_name, new_name)
-		if not success then
-			return rej("os rename failed")
-		end
-		vim.api.nvim_buf_set_name(bufnr, new_name)
-		vim.api.nvim_buf_call(bufnr, function()
-			vim.cmd("silent! write!")
-		end)
 
-		if client.is_stopped() then
-			return rej("client not active")
-		end
-		client.notify("workspace/didRenameFiles", {
-			files = {
-				{
-					oldUri = vim.uri_from_fname(old_name),
-					newUri = vim.uri_from_fname(new_name),
+		local function do_rename()
+			-- try to create dir
+			local new_dir = vim.fn.fnamemodify(new_name, ":h")
+			vim.fn.mkdir(new_dir, "p")
+
+			local success = vim.loop.fs_rename(old_name, new_name)
+			if not success then
+				return rej("os rename failed")
+			end
+			vim.api.nvim_buf_set_name(bufnr, new_name)
+			vim.api.nvim_buf_call(bufnr, function()
+				vim.cmd("silent! write!")
+			end)
+
+			if client.is_stopped() then
+				return rej("client not active")
+			end
+			client.notify("workspace/didRenameFiles", {
+				files = {
+					{
+						oldUri = vim.uri_from_fname(old_name),
+						newUri = vim.uri_from_fname(new_name),
+					},
 				},
-			},
-		})
-		res(new_name)
+			})
+			res(new_name)
+		end
+
+		-- new path exists
+		local stat = vim.loop.fs_stat(new_name)
+		if stat then
+			vim.ui.input({ prompt = "Overwrite '" .. vim.fn.fnamemodify(new_name, ":.") .. "'? y/n" }, function(t)
+				if t == "y" then
+					do_rename()
+				end
+			end)
+		else
+			do_rename()
+		end
 	end)
 end
 
