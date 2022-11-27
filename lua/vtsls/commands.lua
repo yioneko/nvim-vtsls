@@ -4,8 +4,8 @@ local co = coroutine
 local M = {}
 
 local function sync(func, res, rej)
-	res = res or function() end
-	rej = rej or vim.schedule_wrap(vim.notify)
+	res = res or o.get().default_resolve
+	rej = rej or o.get().default_reject
 
 	local thread = co.create(func)
 	local step
@@ -48,40 +48,36 @@ local function exec_command(bufnr, client, command, args)
 	}, bufnr))
 end
 
-local function gen_buf_command(name, params, default_res, default_rej)
+local function gen_buf_command(name, params, handler)
 	return function(bufnr, res, rej)
 		bufnr = bufnr or vim.api.nvim_get_current_buf()
-		res = res or default_res
-		rej = rej or default_rej
+		res = res or o.get().default_resolve
+		rej = rej or o.get().default_reject
+
 		local client = get_client(bufnr)
 		if not client then
-			if rej then
-				rej("No client found")
-			end
-			return
+			return rej("No client found")
 		end
 		sync(function()
 			return exec_command(bufnr, client, name, params and params(bufnr, client))
-		end, res, rej)
+		end, handler and handler(res, rej) or res, rej)
 	end
 end
 
-local function gen_win_command(name, params, default_res, default_rej)
+local function gen_win_command(name, params, handler)
 	return function(winnr, res, rej)
 		winnr = winnr or vim.api.nvim_get_current_win()
 		local bufnr = vim.api.nvim_win_get_buf(winnr)
-		res = res or default_res
-		rej = rej or default_rej
+		res = res or o.get().default_resolve
+		rej = rej or o.get().default_reject
+
 		local client = get_client(bufnr)
 		if not client then
-			if rej then
-				rej("No client found")
-			end
-			return
+			return rej("No client found")
 		end
 		sync(function()
 			return exec_command(bufnr, client, name, params and params(winnr, client))
-		end, res, rej)
+		end, handler(res, rej), rej)
 	end
 end
 
@@ -118,7 +114,7 @@ local function code_action(bufnr, client, kinds)
 			message = d.message,
 			source = d.source,
 			code = d.code,
-			user_data = d.user_data and (d.user_data.lsp or {}),
+			data = d.user_data and (d.user_data.lsp or {}),
 		}
 	end, diagnostics)
 
@@ -145,16 +141,17 @@ end
 local function gen_code_action(kinds)
 	return function(bufnr, res, rej)
 		bufnr = bufnr or vim.api.nvim_get_current_buf()
+		res = res or o.get().default_resolve
+		rej = rej or o.get().default_reject
+
 		local client = get_client(bufnr)
 		if not client then
-			if rej then
-				rej("No client found")
-			end
-			return
+			return rej("No client found")
 		end
+
 		sync(function()
 			return code_action(bufnr, client, kinds)
-		end, res or o.get().handlers.code_action, rej)
+		end, o.get().handlers.code_action(res, rej), rej)
 	end
 end
 

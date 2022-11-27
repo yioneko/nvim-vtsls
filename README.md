@@ -54,7 +54,7 @@ require('vtsls').commands[any_command_name](bufnr, on_resolve, on_reject)
 require('vtsls').commands.goto_source_definition(winnr, on_resolve, on_reject) -- goto_source_definition requires winnr
 
 -- These callbacks are useful if you want to promisify the command functions to write async code.
-function on_resolve(err, result, ctx, bufnr) end -- same as `:h lsp-handler`
+function on_resolve() end -- after handler called
 function on_reject(msg_or_err) end -- in case any error happens
 ```
 
