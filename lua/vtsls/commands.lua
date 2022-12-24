@@ -31,7 +31,7 @@ local function gen_buf_command(name, params, handler)
 
 		local client = get_client(bufnr)
 		if not client then
-			return rej("No client found")
+			return
 		end
 		async.wrap(function()
 			handler(exec_command(bufnr, client, name, params and params(bufnr, client)))
@@ -49,7 +49,7 @@ local function gen_win_command(name, params, handler)
 
 		local client = get_client(bufnr)
 		if not client then
-			return rej("No client found")
+			return
 		end
 		async.wrap(function()
 			handler(exec_command(bufnr, client, name, params and params(winnr, client)))
