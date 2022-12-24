@@ -1,3 +1,5 @@
+local async = require("vtsls.async")
+
 local M = {}
 
 local function default_res() end
@@ -9,108 +11,85 @@ local function default_rej(err)
 end
 
 local function make_default_locations_handler(title)
-	return function(res, rej)
-		res = res or M.get().default_resolve
-		rej = rej or M.get().default_reject
+	return function(err, locations, ctx, config)
+		config = config or {}
+		if err then
+			error(err)
+		end
+		local client = vim.lsp.get_client_by_id(ctx.client_id)
+		if not locations or vim.tbl_isempty(locations) then
+		elseif #locations == 1 then
+			vim.lsp.util.jump_to_location(locations[1], client.offset_encoding, config.reuse_win)
+		else
+			local items = vim.lsp.util.locations_to_items(locations, client.offset_encoding)
 
-		return function(err, locations, ctx, config)
-			config = config or {}
-			if err then
-				return rej(err)
-			end
-			local client = vim.lsp.get_client_by_id(ctx.client_id)
-			if not locations or vim.tbl_isempty(locations) then
-				return res()
-			elseif #locations == 1 then
-				vim.lsp.util.jump_to_location(locations[1], client.offset_encoding, config.reuse_win)
+			if config.loclist then
+				vim.fn.setloclist(0, {}, " ", { title = title, items = items, context = ctx })
+				vim.api.nvim_command("lopen")
+			elseif config.on_list then
+				config.on_list({ title = title, items = items, context = ctx })
 			else
-				local items = vim.lsp.util.locations_to_items(locations, client.offset_encoding)
-
-				if config.loclist then
-					vim.fn.setloclist(0, {}, " ", { title = title, items = items, context = ctx })
-					vim.api.nvim_command("lopen")
-				elseif config.on_list then
-					config.on_list({ title = title, items = items, context = ctx })
-				else
-					vim.fn.setqflist({}, " ", { title = title, items = items, context = ctx })
-					vim.api.nvim_command("botright copen")
-				end
-
-				res()
+				vim.fn.setqflist({}, " ", { title = title, items = items, context = ctx })
+				vim.api.nvim_command("botright copen")
 			end
 		end
 	end
 end
 
-local function default_code_action_handler(res, rej)
-	res = res or M.get().default_resolve
-	rej = rej or M.get().default_reject
+local function default_code_action_handler(err, actions, ctx, config)
+	config = config or {}
+	if err then
+		error(err)
+	end
+	if not actions or #actions == 0 then
+		return
+	end
 
-	return function(err, actions, ctx, config)
-		config = config or {}
-		if err then
-			return rej(err)
+	local function on_action(action, has_resolved)
+		if not action then
+			return
 		end
-		if not actions or #actions == 0 then
-			vim.notify("No actions responded", vim.log.levels.INFO)
-			return res()
-		end
-
-		local function on_action(action, has_resolved)
-			if not action then
-				return res()
+		local client = vim.lsp.get_client_by_id(ctx.client_id)
+		if action.edit then
+			vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+		elseif action.command then
+			local command = type(action.command) == "table" and action.command or action
+			local params = {
+				command = command.command,
+				arguments = command.arguments,
+				workDoneToken = command.workDoneToken,
+			}
+			local err = async.request(client, "workspace/executeCommand", params, ctx.bufnr)
+			if err then
+				error(err)
 			end
-			local client = vim.lsp.get_client_by_id(ctx.client_id)
-			if action.edit then
-				vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
-			elseif action.command then
-				local command = type(action.command) == "table" and action.command or action
-				local params = {
-					command = command.command,
-					arguments = command.arguments,
-					workDoneToken = command.workDoneToken,
-				}
-				client.request("workspace/executeCommand", params, function(err)
-					if err then
-						rej(err)
-					else
-						res()
-					end
-				end, ctx.bufnr)
-			elseif not has_resolved then
-				client.request("codeAction/resolve", action, function(err, resolved)
-					if err then
-						return rej(err)
-					end
-					on_action(resolved, true)
-				end)
-			else
-				rej("Cannot resolve action " .. action.title)
+		elseif not has_resolved then
+			local err, resolved = async.request(client, "codeAction/resolve", action, ctx.bufnr)
+			if err then
+				error(err)
 			end
+			on_action(resolved, true)
 		end
+	end
 
-		if #actions == 1 then
-			on_action(actions[1], false)
-		else
-			vim.ui.select(
-				vim.tbl_map(function(ac)
-					return { ctx.client_id, ac }
-				end, actions),
-				{
-					prompt = "Code actions:",
-					kind = "codeaction",
-					format_item = function(tuple)
-						return tuple[2].title
-					end,
-				},
-				function(tuple)
-					if tuple then
-						on_action(tuple[2])
-					else
-						res()
-					end
-				end
-			)
+	if #actions == 1 then
+		on_action(actions[1], false)
+	else
+		local tuple = async.async_call(
+			vim.ui.select,
+			vim.tbl_map(function(ac)
+				return { ctx.client_id, ac }
+			end, actions),
+			{
+				prompt = "Code actions:",
+				kind = "codeaction",
+				format_item = function(tuple)
+					return tuple[2].title
+				end,
+			}
+		)
+		if tuple then
+			on_action(tuple[2])
 		end
 	end
 end

@@ -8,6 +8,14 @@ Not needed. The command will be automatically created on `LspAttach` event.
 
 ## Usage
 
+### Setup server (requires [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig))
+
+```lua
+require("lspconfig.configs").vtsls = require("vtsls").lspconfig -- set default server config
+require("lspconfig").vtsls.setup({ --[[ your custom server config here ]] })
+```
+
+### Execute commands
 ```vim
 :VtsExec {command}
 ```
