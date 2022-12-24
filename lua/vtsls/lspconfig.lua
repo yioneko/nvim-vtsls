@@ -24,6 +24,14 @@ local function gen_config()
 				return util.root_pattern("tsconfig.json", "jsconfig.json")(fname)
 					or util.root_pattern("package.json", ".git")(fname)
 			end,
+			settings = {
+				typescript = {
+					updateImportsOnFileMove = "always",
+				},
+				javascript = {
+					updateImportsOnFileMove = "always",
+				},
+			},
 		},
 	}
 end
