@@ -21,7 +21,7 @@ local function gen_config()
 				"typescript.tsx",
 			},
 			root_dir = function(fname)
-				return util.root_pattern("tsconfig.json", "jsconfig.json")
+				return util.root_pattern("tsconfig.json", "jsconfig.json")(fname)
 					or util.root_pattern("package.json", ".git")(fname)
 			end,
 		},
