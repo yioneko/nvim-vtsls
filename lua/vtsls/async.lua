@@ -9,14 +9,14 @@ function M.wrap(func, res, rej)
 		local args = { ... }
 		local ok, nxt = co.resume(thread, unpack(args))
 		if co.status(thread) ~= "dead" then
-			local _, err = pcall(nxt, step)
+			local _, err = xpcall(nxt, debug.traceback, step)
 			if err then
 				rej(err)
 			end
 		elseif ok then
 			res(unpack(args))
 		else
-			rej(nxt)
+			rej(debug.traceback(thread, nxt))
 		end
 	end
 
