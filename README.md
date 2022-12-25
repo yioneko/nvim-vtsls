@@ -2,10 +2,6 @@
 
 Plugin to help utilize capabilities of [vtsls](https://github.com/yioneko/vtsls).
 
-## Setup
-
-Not needed. The command will be automatically created on `LspAttach` event.
-
 ## Usage
 
 ### Setup server (requires [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig))

@@ -107,6 +107,8 @@ local o = {
 
 function M.override(conf)
 	o.name = conf.name or o.name
+	o.default_resolve = conf.default_resolve or o.default_resolve
+	o.default_reject = conf.default_reject or o.default_reject
 	vim.tbl_extend("force", o.handlers, conf.handlers or {})
 end
 

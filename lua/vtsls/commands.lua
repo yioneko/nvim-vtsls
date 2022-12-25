@@ -8,10 +8,6 @@ local function get_client(bufnr)
 	local clients = vim.lsp.get_active_clients({ bufnr = bufnr, name = o.get().name })
 	if clients and clients[1] then
 		return clients[1]
-	else
-		vim.schedule(function()
-			vim.notify("No active client found for " .. o.get().name, vim.log.levels.ERROR)
-		end)
 	end
 end
 
@@ -122,7 +118,7 @@ local function gen_code_action(kinds)
 
 		local client = get_client(bufnr)
 		if not client then
-			return rej("No client found")
+			return
 		end
 
 		async.wrap(function()
