@@ -27,7 +27,7 @@ local function gen_buf_command(name, params, handler)
 
 		local client = get_client(bufnr)
 		if not client then
-			return
+			return rej("No client found")
 		end
 		async.wrap(function()
 			handler(exec_command(bufnr, client, name, params and params(bufnr, client)))
@@ -45,7 +45,7 @@ local function gen_win_command(name, params, handler)
 
 		local client = get_client(bufnr)
 		if not client then
-			return
+			return rej("No client found")
 		end
 		async.wrap(function()
 			handler(exec_command(bufnr, client, name, params and params(winnr, client)))
@@ -118,7 +118,7 @@ local function gen_code_action(kinds)
 
 		local client = get_client(bufnr)
 		if not client then
-			return
+			return rej("No client found")
 		end
 
 		async.wrap(function()
@@ -152,8 +152,9 @@ function M.rename_file(bufnr, res, rej)
 		local new_dir = vim.fn.fnamemodify(new_name, ":h")
 		vim.fn.mkdir(new_dir, "p")
 
+		local old_file_exits = not async.async_call(vim.loop.fs_stat, old_name)
 		-- only rename if the file exists
-		if not async.async_call(vim.loop.fs_stat, old_name) then
+		if old_file_exits then
 			local err = async.async_call(vim.loop.fs_rename, old_name, new_name)
 			if err then
 				error("os rename failed " .. tostring(err))
@@ -163,6 +164,11 @@ function M.rename_file(bufnr, res, rej)
 		async.schedule()
 		check_buf()
 		vim.api.nvim_buf_set_name(bufnr, new_name)
+		if old_file_exits then
+			vim.api.nvim_buf_call(bufnr, function()
+				vim.cmd("silent write!")
+			end)
+		end
 
 		if client.is_stopped() then
 			error("client not active")
