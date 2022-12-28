@@ -1,8 +1,8 @@
 local o = require("vtsls.config")
+local async = require("vtsls.async")
+local rename = require("vtsls.rename")
 
 local M = {}
-
-local async = require("vtsls.async")
 
 local function get_client(bufnr)
 	local clients = vim.lsp.get_active_clients({ bufnr = bufnr, name = o.get().name })
@@ -133,76 +133,13 @@ function M.rename_file(bufnr, res, rej)
 	res = res or o.get().default_resolve
 	rej = rej or o.get().default_reject
 
-	local client = get_client(bufnr)
-	if not client then
-		return rej("No client found")
-	end
-
 	local old_name = vim.api.nvim_buf_get_name(bufnr)
-
-	local function check_buf()
-		if not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
-			error("Buffer is invalid")
-		end
-	end
-
-	local function do_rename(new_name)
-		async.schedule()
-		-- try to create dir
-		local new_dir = vim.fn.fnamemodify(new_name, ":h")
-		vim.fn.mkdir(new_dir, "p")
-
-		local old_file_exits = not async.async_call(vim.loop.fs_stat, old_name)
-		-- only rename if the file exists
-		if old_file_exits then
-			local err = async.async_call(vim.loop.fs_rename, old_name, new_name)
-			if err then
-				error("os rename failed " .. tostring(err))
-			end
-		end
-
-		async.schedule()
-		check_buf()
-		vim.api.nvim_buf_set_name(bufnr, new_name)
-		if old_file_exits then
-			vim.api.nvim_buf_call(bufnr, function()
-				vim.cmd("silent write!")
-			end)
-		end
-
-		if client.is_stopped() then
-			error("client not active")
-		end
-		client.notify("workspace/didRenameFiles", {
-			files = {
-				{
-					oldUri = vim.uri_from_fname(old_name),
-					newUri = vim.uri_from_fname(new_name),
-				},
-			},
-		})
-	end
-
 	async.wrap(function()
 		local new_name = async.async_call(vim.ui.input, { default = old_name })
 		if not new_name then
 			return
 		end
-		check_buf()
-		-- new path exists
-		local _, stat = async.async_call(vim.loop.fs_stat, new_name)
-		if stat then
-			async.schedule()
-			local yn = async.async_call(
-				vim.ui.input,
-				{ prompt = "Overwrite '" .. vim.fn.fnamemodify(new_name, ":.") .. "'? y/n" }
-			)
-			if yn == "y" then
-				do_rename(new_name)
-			end
-		else
-			do_rename(new_name)
-		end
+		async.async_call_err(rename, old_name, new_name)
 	end, res, rej)
 end
 

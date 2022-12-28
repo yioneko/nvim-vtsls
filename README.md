@@ -12,6 +12,7 @@ require("lspconfig").vtsls.setup({ --[[ your custom server config here ]] })
 ```
 
 ### Execute commands
+
 ```vim
 :VtsExec {command}
 ```
@@ -56,6 +57,7 @@ require('vtsls').config({
 ```lua
 require('vtsls').commands[any_command_name](bufnr, on_resolve, on_reject)
 require('vtsls').commands.goto_source_definition(winnr, on_resolve, on_reject) -- goto_source_definition requires winnr
+require('vtsls').rename(old_name, new_name, on_resolve, on_reject) -- rename file or folder
 
 -- These callbacks are useful if you want to promisify the command functions to write async code.
 function on_resolve() end -- after handler called

@@ -8,6 +8,9 @@ local lazy_mod = {
 	lspconfig = function()
 		return require("vtsls.lspconfig")
 	end,
+	rename = function()
+		return require("vtsls.rename")
+	end,
 }
 
 return setmetatable({

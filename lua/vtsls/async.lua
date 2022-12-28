@@ -31,6 +31,17 @@ function M.async_call(func, ...)
 	end)
 end
 
+function M.async_call_err(func, ...)
+	local args = { ... }
+	return co.yield(function(cb)
+		table.insert(args, cb)
+		table.insert(args, function(e)
+			error(e)
+		end)
+		func(unpack(args))
+	end)
+end
+
 function M.schedule()
 	return co.yield(function(cb)
 		vim.schedule(cb)
