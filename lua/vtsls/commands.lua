@@ -29,7 +29,7 @@ local function gen_buf_command(name, params, handler)
 		if not client then
 			return rej("No client found")
 		end
-		async.wrap(function()
+		async.exec(function()
 			handler(exec_command(bufnr, client, name, params and params(bufnr, client)))
 		end, res, rej)
 	end
@@ -47,7 +47,7 @@ local function gen_win_command(name, params, handler)
 		if not client then
 			return rej("No client found")
 		end
-		async.wrap(function()
+		async.exec(function()
 			handler(exec_command(bufnr, client, name, params and params(winnr, client)))
 		end, res, rej)
 	end
@@ -121,7 +121,7 @@ local function gen_code_action(kinds)
 			return rej("No client found")
 		end
 
-		async.wrap(function()
+		async.exec(function()
 			local handler = o.get().handlers.code_action
 			handler(code_action(bufnr, client, kinds))
 		end, res, rej)
@@ -134,8 +134,8 @@ function M.rename_file(bufnr, res, rej)
 	rej = rej or o.get().default_reject
 
 	local old_name = vim.api.nvim_buf_get_name(bufnr)
-	async.wrap(function()
-		local new_name = async.async_call(vim.ui.input, { default = old_name })
+	async.exec(function()
+		local new_name = async.call(vim.ui.input, { default = old_name })
 		if not new_name then
 			return
 		end

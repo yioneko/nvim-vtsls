@@ -1,36 +1,40 @@
 local o = require("vtsls.config")
 local async = require("vtsls.async")
 
-local function get_client_by_path(path)
-	local clients = vim.lsp.get_active_clients({ name = o.get().name })
-	if #clients == 0 then
-		return
-	end
-
-	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.api.nvim_buf_is_valid(buf) then
-			local name = vim.api.nvim_buf_get_name(buf)
-			if vim.startswith(name, path) then
-				for _, client in ipairs(clients) do
-					if vim.lsp.buf_is_attached(buf, client.id) then
-						return client
-					end
-				end
-			end
-		end
-	end
-end
+local path_sep = package.config:sub(1, 1)
 
 local function path_normalize(name)
 	return vim.fn.fnamemodify(name, ":p")
 end
 
-local path_sep = package.config:sub(1, 1)
+local function trim_sep(path)
+	return path:gsub(path_sep .. "$", "")
+end
 
 local function uri_from_path(path)
-	-- TODO: better trimming
-	local fname = path:sub(#path) == path_sep and path:sub(1, #path - 1) or path
-	return vim.uri_from_fname(fname)
+	return vim.uri_from_fname(trim_sep(path))
+end
+
+local function is_sub_path(path, folder)
+	path = trim_sep(path)
+	folder = trim_sep(folder)
+	if path == folder then
+		return true
+	else
+		return path:sub(1, #folder + 1) == folder .. path_sep
+	end
+end
+
+local function get_clients_by_path(path)
+	local clients = {}
+	for _, client in pairs(vim.lsp.get_active_clients({ name = o.get().name })) do
+		for _, folder in pairs(client.workspace_folders) do
+			if is_sub_path(path, vim.uri_to_fname(folder.uri)) then
+				table.insert(clients, client)
+			end
+		end
+	end
+	return clients
 end
 
 local function do_rename(client, old_path, new_path)
@@ -41,21 +45,23 @@ local function do_rename(client, old_path, new_path)
 		vim.fn.mkdir(new_dir, "p")
 	end
 
-	local old_exists = not async.async_call(vim.loop.fs_stat, old_path)
+	local old_exists = not async.call(vim.loop.fs_stat, old_path)
 	-- only rename if the file exists
 	if old_exists then
-		local err = async.async_call(vim.loop.fs_rename, old_path, new_path)
+		local err = async.call(vim.loop.fs_rename, old_path, new_path)
 		if err then
 			error("uv rename failed " .. tostring(err))
 		end
 	end
 
-	local old_path_with_sep = vim.endswith(old_path, path_sep) and old_path or old_path .. path_sep
-	local new_path_with_sep = vim.endswith(new_path, path_sep) and new_path or new_path .. path_sep
+	local old_path_with_sep = trim_sep(old_path) .. path_sep
+	local new_path_with_sep = trim_sep(new_path) .. path_sep
 	local force_write = function(bufnr)
-		vim.api.nvim_buf_call(bufnr, function()
-			vim.cmd("silent write!")
-		end)
+		if vim.bo[bufnr].buftype == "" then
+			vim.api.nvim_buf_call(bufnr, function()
+				vim.cmd("silent write!")
+			end)
+		end
 	end
 
 	async.schedule()
@@ -66,7 +72,7 @@ local function do_rename(client, old_path, new_path)
 			if old_path == buf_name then
 				vim.api.nvim_buf_set_name(buf, new_path)
 				force_write(buf)
-			elseif vim.startswith(buf_name, old_path_with_sep) then
+			elseif is_sub_path(buf_name, old_path) then
 				-- new_path is dir
 				vim.api.nvim_buf_set_name(buf, new_path_with_sep .. buf_name:sub(#old_path_with_sep + 1))
 				force_write(buf)
@@ -95,25 +101,27 @@ local function rename(old_name, new_name, res, rej)
 	local old_path = path_normalize(old_name)
 	local new_path = path_normalize(new_name)
 
-	local client = get_client_by_path(old_path)
-	if not client then
+	local clients = get_clients_by_path(old_path)
+	if #clients == 0 then
 		return rej("No client found")
 	end
 
-	async.wrap(function()
+	async.exec(function()
 		-- new path exists
-		local _, stat = async.async_call(vim.loop.fs_stat, new_path)
+		local _, stat = async.call(vim.loop.fs_stat, new_path)
 		if stat then
 			async.schedule()
-			local yn = async.async_call(
-				vim.ui.input,
-				{ prompt = "Overwrite '" .. vim.fn.fnamemodify(new_name, ":.") .. "'? y/n" }
-			)
+			local yn =
+				async.call(vim.ui.input, { prompt = "Overwrite '" .. vim.fn.fnamemodify(new_name, ":.") .. "'? y/n" })
 			if yn == "y" then
-				do_rename(client, old_path, new_path)
+				for _, client in pairs(clients) do
+					do_rename(client, old_path, new_path)
+				end
 			end
 		else
-			do_rename(client, old_path, new_path)
+			for _, client in pairs(clients) do
+				do_rename(client, old_path, new_path)
+			end
 		end
 	end, res, rej)
 end

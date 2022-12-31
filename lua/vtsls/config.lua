@@ -75,7 +75,7 @@ local function default_code_action_handler(err, actions, ctx, config)
 	if #actions == 1 then
 		on_action(actions[1], false)
 	else
-		local tuple = async.async_call(
+		local tuple = async.call(
 			vim.ui.select,
 			vim.tbl_map(function(ac)
 				return { ctx.client_id, ac }

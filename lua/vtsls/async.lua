@@ -2,7 +2,7 @@ local co = coroutine
 
 local M = {}
 
-function M.wrap(func, res, rej)
+function M.exec(func, res, rej)
 	local thread = co.create(func)
 	local step
 	step = function(...)
@@ -23,7 +23,7 @@ function M.wrap(func, res, rej)
 	step()
 end
 
-function M.async_call(func, ...)
+function M.call(func, ...)
 	local args = { ... }
 	return co.yield(function(cb)
 		table.insert(args, cb)

@@ -17,6 +17,12 @@ require("lspconfig").vtsls.setup({ --[[ your custom server config here ]] })
 :VtsExec {command}
 ```
 
+### Rename file/folder and update import paths
+
+```vim
+:VtsRename {from} {to}
+```
+
 ## Config
 
 ```lua
