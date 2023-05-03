@@ -28,8 +28,14 @@ return setmetatable({
 		end, {
 			desc = "Execute vtsls commands",
 			nargs = 1,
-			complete = function()
-				return vim.tbl_keys(require("vtsls.commands"))
+			complete = function(arglead)
+				local opts = vim.tbl_keys(require("vtsls.commands"))
+				if not arglead or arglead == "" then
+					return opts
+				end
+				return vim.tbl_filter(function(opt)
+					return vim.startswith(opt, arglead)
+				end, opts)
 			end,
 		})
 		if not vim.api.nvim_get_commands({})["VtsRename"] then
