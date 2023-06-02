@@ -2,12 +2,18 @@
 
 Plugin to help utilize capabilities of [vtsls](https://github.com/yioneko/vtsls).
 
+**NOTE**: This plugin is **not needed** to work with `vtsls`. It simply offers some extra helper commands and optional improvements. Any server related issue should go up to the upstream.
+
 ## Usage
 
-### Setup server (requires [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig))
+### Setup server
+
+Through [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig):
 
 ```lua
-require("lspconfig.configs").vtsls = require("vtsls").lspconfig -- set default server config
+require("lspconfig.configs").vtsls = require("vtsls").lspconfig -- set default server config, optional but recommended
+
+-- If the lsp setup is taken over by other plugin, it is the same to call the counterpart setup function
 require("lspconfig").vtsls.setup({ --[[ your custom server config here ]] })
 ```
 
@@ -46,7 +52,7 @@ require('vtsls').config({
 | `open_tsserver_log`      | It will open prompt if logging has not been enabled.                     |
 | `reload_projects`        |                                                                          |
 | `select_ts_version`      | Select version of ts either from workspace or global.                    |
-| `goto_project_config`    | Open `tsconfig.json` or `jsconfig.json`.                                 |
+| `goto_project_config`    | Open `tsconfig.json`.                                                    |
 | `goto_source_definition` | Go to the source definition instead of typings.                          |
 | `file_references`        | Show references of the current file.                                     |
 | `rename_file`            | Rename the current file and update all the related paths in the project. |
