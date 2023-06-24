@@ -72,6 +72,7 @@ return setmetatable({
 				end
 			end
 		end
+		require("vtsls.format-fix").attach(client, bufnr)
 	end,
 	_on_detach = function(client_id, bufnr)
 		local client = vim.lsp.get_client_by_id(client_id)

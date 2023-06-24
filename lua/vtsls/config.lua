@@ -105,7 +105,10 @@ local o = {
 	default_resolve = default_res,
 	default_reject = default_rej,
 	refactor_auto_rename = true,
+	enable_format_fix = false,
 }
+
+local change_listeners = {}
 
 function M.override(conf)
 	o.name = conf.name or o.name
@@ -114,11 +117,22 @@ function M.override(conf)
 	if conf.refactor_auto_rename ~= nil then
 		o.refactor_auto_rename = conf.refactor_auto_rename
 	end
+	if conf.enable_format_fix ~= nil then
+		o.enable_format_fix = conf.enable_format_fix
+	end
 	vim.tbl_extend("force", o.handlers, conf.handlers or {})
+
+	for _, listener in pairs(change_listeners) do
+		listener(conf)
+	end
 end
 
 function M.get()
 	return o
+end
+
+function M.listen(cb)
+	table.insert(change_listeners, cb)
 end
 
 return M
