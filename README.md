@@ -41,6 +41,9 @@ require('vtsls').config({
     },
     -- automatically trigger renaming of extracted symbol
     refactor_auto_rename = true,
+    -- notify the server of the formatting options actively to be free of passing that through
+    -- configuration, this is mainly related to the text edit of refactor code action
+    active_format_opts_notify = false,
 })
 ```
 

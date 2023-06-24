@@ -1,5 +1,6 @@
 local o = require("vtsls.config")
 local async = require("vtsls.async")
+local compat = require("vtsls.compat")
 
 local path_sep = package.config:sub(1, 1)
 
@@ -27,7 +28,7 @@ end
 
 local function get_clients_by_path(path)
 	local clients = {}
-	for _, client in pairs(vim.lsp.get_active_clients({ name = o.get().name })) do
+	for _, client in pairs(compat.get_clients({ name = o.get().name })) do
 		for _, folder in pairs(client.workspace_folders) do
 			if is_sub_path(path, vim.uri_to_fname(folder.uri)) then
 				table.insert(clients, client)

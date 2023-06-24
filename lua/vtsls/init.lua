@@ -72,6 +72,7 @@ return setmetatable({
 				end
 			end
 		end
+		require("vtsls.format-notifier").attach(client, bufnr)
 	end,
 	_on_detach = function(client_id, bufnr)
 		local client = vim.lsp.get_client_by_id(client_id)
@@ -82,6 +83,7 @@ return setmetatable({
 				pcall(vim.api.nvim_del_user_command, "VtsRename")
 			end
 		end
+		require("vtsls.format-notifier").detach(client, bufnr)
 	end,
 }, {
 	__index = function(tbl, key)
