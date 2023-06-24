@@ -38,6 +38,7 @@ return setmetatable({
 				end, opts)
 			end,
 		})
+
 		if not vim.api.nvim_get_commands({})["VtsRename"] then
 			vim.api.nvim_create_user_command("VtsRename", function(cargs)
 				local from = cargs.fargs[1]
@@ -52,6 +53,24 @@ return setmetatable({
 				nargs = "*",
 				complete = "file",
 			})
+		end
+
+		if not client.commands["editor.action.rename"] and require("vtsls.config").get().refactor_auto_rename then
+			client.commands["editor.action.rename"] = function(command)
+				for _, renaming in ipairs(command.arguments) do
+					local uri = renaming[1]
+					local pos = renaming[2]
+					local applied_bufnr = vim.uri_to_bufnr(uri)
+					vim.api.nvim_set_current_buf(applied_bufnr)
+					local line = pos.line + 1
+					-- TODO: consider copying this util function
+					local col = vim.lsp.util._get_line_byte_from_position(applied_bufnr, pos, client.offset_encoding)
+					vim.api.nvim_win_set_cursor(0, { line, col })
+					vim.lsp.buf.rename()
+					-- only rename once
+					break
+				end
+			end
 		end
 	end,
 	_on_detach = function(client_id, bufnr)

@@ -33,14 +33,14 @@ require("lspconfig").vtsls.setup({ --[[ your custom server config here ]] })
 
 ```lua
 require('vtsls').config({
-    -- lsp server name
-    name = "vtsls",
     -- customize handlers for commands
     handlers = {
         source_definition = function(err, locations) end,
         file_references = function(err, locations) end,
         code_action = function(err, actions) end,
-    }
+    },
+    -- automantically trigger renaming of extracted symbol
+    refactor_auto_rename = true,
 })
 ```
 

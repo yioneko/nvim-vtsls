@@ -95,6 +95,7 @@ local function default_code_action_handler(err, actions, ctx, config)
 end
 
 local o = {
+	---@deprecated
 	name = "vtsls",
 	handlers = {
 		source_definition = make_default_locations_handler("TS Source Definitions"),
@@ -103,12 +104,16 @@ local o = {
 	},
 	default_resolve = default_res,
 	default_reject = default_rej,
+	refactor_auto_rename = true,
 }
 
 function M.override(conf)
 	o.name = conf.name or o.name
 	o.default_resolve = conf.default_resolve or o.default_resolve
 	o.default_reject = conf.default_reject or o.default_reject
+	if conf.refactor_auto_rename ~= nil then
+		o.refactor_auto_rename = conf.refactor_auto_rename
+	end
 	vim.tbl_extend("force", o.handlers, conf.handlers or {})
 end
 
