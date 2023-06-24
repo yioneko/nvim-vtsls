@@ -39,7 +39,7 @@ require('vtsls').config({
         file_references = function(err, locations) end,
         code_action = function(err, actions) end,
     },
-    -- automantically trigger renaming of extracted symbol
+    -- automatically trigger renaming of extracted symbol
     refactor_auto_rename = true,
 })
 ```
@@ -79,3 +79,4 @@ function on_reject(msg_or_err) end -- in case any error happens
 ## Credits
 
 - [typescript.nvim](https://github.com/jose-elias-alvarez/typescript.nvim)
+- [typescript-tools.nvim](https://github.com/pmizio/typescript-tools.nvim)
