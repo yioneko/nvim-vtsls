@@ -176,7 +176,7 @@ local function match_file_operation_filter(filter, name, type)
 end
 
 local api = require("nvim-tree.api")
-api.events.subscribe(api.events.Event.NodeRename, function(data)
+api.events.subscribe(api.events.Event.NodeRenamed, function(data)
   local stat = vim.loop.fs_stat(data.new_name)
   if not stat then
     return
