@@ -149,7 +149,7 @@ end
 
 local function check_folders_contains(folders, path)
   for _, folder in pairs(folders) do
-    if is_sub_path(path, folder) then
+    if is_sub_path(path, folder.name) then
       return true
     end
   end
