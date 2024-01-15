@@ -1,6 +1,8 @@
 local async = require("vtsls.async")
 local o = require("vtsls.config")
 
+local path_sep = package.config:sub(1, 1)
+
 local function exec_command(bufnr, client, command, args)
 	return async.request(client, "workspace/executeCommand", {
 		command = command,
@@ -33,13 +35,34 @@ return function(client)
 		end
 
 		local files = response.body.files
-		local target = async.call(vim.ui.select, files, {
-			prompt = "Select target file",
-			format_item = function(path)
-				return vim.fn.fnamemodify(path, ":.")
+		local items = { { "", "Enter new file path..." } }
+
+		async.schedule()
+		for i = 1, #files do
+			local path = files[i]
+			table.insert(items, { path, vim.fn.fnamemodify(path, ":.") })
+		end
+
+		local item, idx = async.call(vim.ui.select, items, {
+			prompt = "Select move destination:",
+			format_item = function(item)
+				return item[2]
 			end,
 		})
-		return target
+
+		if not item then -- selection cancelled
+			return
+		end
+
+		if idx == 1 then
+			return async.call(vim.ui.input, {
+				prompt = "Enter move destination:",
+				default = vim.fn.fnamemodify(fname, ":h") .. path_sep,
+				completion = "file",
+			})
+		else
+			return item[1]
+		end
 	end
 
 	local function move_to_file_handler(command)
@@ -51,7 +74,10 @@ return function(client)
 
 			local bufnr = vim.uri_to_bufnr(uri)
 			local target_file = get_target_file(uri, range)
-			exec_command(bufnr, client, command.command, { action, uri, range, target_file })
+
+			if target_file then
+				exec_command(bufnr, client, command.command, { action, uri, range, target_file })
+			end
 		end, o.get().default_resolve, o.get().default_reject)
 	end
 
