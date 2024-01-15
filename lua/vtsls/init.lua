@@ -72,6 +72,10 @@ return setmetatable({
 				end
 			end
 		end
+
+		if not client.commands["_typescript.moveToFileRefactoring"] then
+			client.commands["_typescript.moveToFileRefactoring"] = require("vtsls.move_to_file")(client)
+		end
 	end,
 	_on_detach = function(client_id, bufnr)
 		local client = vim.lsp.get_client_by_id(client_id)

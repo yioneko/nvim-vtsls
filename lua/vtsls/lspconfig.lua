@@ -31,6 +31,9 @@ local function gen_config()
 				javascript = {
 					updateImportsOnFileMove = "always",
 				},
+				vtsls = {
+					enableMoveToFileCodeAction = true,
+				},
 			},
 		},
 	}
