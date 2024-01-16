@@ -105,6 +105,9 @@ local o = {
 	default_resolve = default_res,
 	default_reject = default_rej,
 	refactor_auto_rename = true,
+	refactor_move_to_file = {
+		path_display = "default",
+	},
 }
 
 function M.override(conf)
@@ -114,7 +117,8 @@ function M.override(conf)
 	if conf.refactor_auto_rename ~= nil then
 		o.refactor_auto_rename = conf.refactor_auto_rename
 	end
-	vim.tbl_extend("force", o.handlers, conf.handlers or {})
+	o.refactor_move_to_file = vim.tbl_extend("force", o.refactor_move_to_file, conf.refactor_move_to_file or {})
+	o.handlers = vim.tbl_extend("force", o.handlers, conf.handlers or {})
 end
 
 function M.get()

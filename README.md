@@ -33,14 +33,19 @@ require("lspconfig").vtsls.setup({ --[[ your custom server config here ]] })
 
 ```lua
 require('vtsls').config({
-    -- customize handlers for commands
-    handlers = {
-        source_definition = function(err, locations) end,
-        file_references = function(err, locations) end,
-        code_action = function(err, actions) end,
-    },
-    -- automatically trigger renaming of extracted symbol
-    refactor_auto_rename = true,
+  -- customize handlers for commands
+  handlers = {
+    source_definition = function(err, locations) end,
+    file_references = function(err, locations) end,
+    code_action = function(err, actions) end,
+  },
+  -- automatically trigger renaming of extracted symbol
+  refactor_auto_rename = true,
+  refactor_move_to_file = {
+    -- controls how path is displayed for selection of destination file
+    -- "default" | "vscode" | function(path: string) -> string
+    path_display = "default"
+  }
 })
 ```
 

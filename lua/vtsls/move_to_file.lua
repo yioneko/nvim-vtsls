@@ -20,6 +20,15 @@ local function to_file_range_request_args(file, range)
 	}
 end
 
+local path_display_strategies = {
+	default = function(path)
+		return vim.fn.fnamemodify(path, ":.")
+	end,
+	vscode = function(path)
+		return vim.fn.fnamemodify(path, ":t") .. " ▏" .. vim.fn.fnamemodify(path, ":.")
+	end,
+}
+
 return function(client)
 	local function get_target_file(uri, range)
 		local bufnr = vim.uri_to_bufnr(uri)
@@ -37,10 +46,15 @@ return function(client)
 		local files = response.body.files
 		local items = { { "", "Enter new file path..." } }
 
+		local path_display = o.get().refactor_move_to_file.path_display
+		if type(path_display) == "string" then
+			path_display = path_display_strategies[path_display]
+		end
+
 		async.schedule()
 		for i = 1, #files do
 			local path = files[i]
-			table.insert(items, { path, vim.fn.fnamemodify(path, ":.") })
+			table.insert(items, { path, path_display(path) })
 		end
 
 		local item, idx = async.call(vim.ui.select, items, {
