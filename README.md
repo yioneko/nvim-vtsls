@@ -31,6 +31,8 @@ require("lspconfig").vtsls.setup({ --[[ your custom server config here ]] })
 
 ## Config
 
+This is OPTIONAL. All the fields are also optional.
+
 ```lua
 require('vtsls').config({
   -- customize handlers for commands
@@ -44,7 +46,9 @@ require('vtsls').config({
   refactor_move_to_file = {
     -- controls how path is displayed for selection of destination file
     -- "default" | "vscode" | function(path: string) -> string
-    path_display = "default"
+    path_display = "default",
+    -- If dressing.nvim is installed, telescope will be used for selection prompt. Use this to customize the opts for telescope picker.
+    telescope_opts = function(items) end,
   }
 })
 ```
