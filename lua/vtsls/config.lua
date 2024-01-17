@@ -106,16 +106,14 @@ local o = {
 	default_reject = default_rej,
 	refactor_auto_rename = true,
 	refactor_move_to_file = {
-		path_display = "default",
+		telescope_opts = nil,
 	},
-	telescope_opts = nil,
 }
 
 function M.override(conf)
 	o.name = conf.name or o.name
 	o.default_resolve = conf.default_resolve or o.default_resolve
 	o.default_reject = conf.default_reject or o.default_reject
-	o.telescope_opts = conf.telescope_opts or o.telescope_opts
 	if conf.refactor_auto_rename ~= nil then
 		o.refactor_auto_rename = conf.refactor_auto_rename
 	end

@@ -44,11 +44,9 @@ require('vtsls').config({
   -- automatically trigger renaming of extracted symbol
   refactor_auto_rename = true,
   refactor_move_to_file = {
-    -- controls how path is displayed for selection of destination file
-    -- "default" | "vscode" | function(path: string) -> string
-    path_display = "default",
-    -- If dressing.nvim is installed, telescope will be used for selection prompt. Use this to customize the opts for telescope picker.
-    telescope_opts = function(items) end,
+    -- If dressing.nvim is installed, telescope will be used for selection prompt. Use this to customize
+    -- the opts for telescope picker.
+    telescope_opts = function(items, default) end,
   }
 })
 ```

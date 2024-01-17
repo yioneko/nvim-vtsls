@@ -20,57 +20,46 @@ local function to_file_range_request_args(file, range)
 	}
 end
 
-local path_display_strategies = {
-	default = function(path)
-		return vim.fn.fnamemodify(path, ":.")
-	end,
-	vscode = function(path)
-		return vim.fn.fnamemodify(path, ":t") .. " ▏" .. vim.fn.fnamemodify(path, ":.")
-	end,
-}
-
 local has_telescope
-local function get_telescope_opts(items)
-	if o.get().telescope_opts then
-		return o.get().telescope_opts(items)
-	end
+local function get_default_telescope_opts(items)
 	if has_telescope == nil then
 		has_telescope = pcall(require, "telescope")
 	end
 	if not has_telescope then
-		return
-	else
-		local finders = require("telescope.finders")
-		local file_entry_maker = require("telescope.make_entry").gen_from_file()
-
-		return require("telescope.themes").get_dropdown({
-			finder = finders.new_table({
-				results = items,
-				entry_maker = function(item)
-					local path = item[1]
-					local idx = item[3]
-					if idx == 1 then
-						-- enter input option
-						return {
-							display = item[2],
-							ordinal = "",
-							value = item,
-						}
-					else
-						local entry = file_entry_maker(path)
-						return {
-							display = function(_)
-								return entry:display()
-							end,
-							ordinal = path,
-							filename = path,
-							value = item,
-						}
-					end
-				end,
-			}),
-		})
+		return {}
 	end
+	local finders = require("telescope.finders")
+	local file_entry_maker = require("telescope.make_entry").gen_from_file()
+
+	return require("telescope.themes").get_dropdown({
+		finder = finders.new_table({
+			results = items,
+			entry_maker = function(item)
+				local path = item[1]
+				local idx = item[3]
+				if idx == 1 then
+					-- enter input option
+					return {
+						display = item[2],
+						ordinal = "",
+						value = item,
+					}
+				else
+					local entry = file_entry_maker(path)
+					-- entry is rebuilt because the value should be item(table), not string
+					return {
+						display = function()
+							return entry:display()
+						end,
+						ordinal = path,
+						filename = path,
+						value = item,
+					}
+				end
+			end,
+			no_ignore = true,
+		}),
+	})
 end
 
 return function(client)
@@ -90,15 +79,15 @@ return function(client)
 		local files = response.body.files
 		local items = { { "", "Enter new file path...", 1 } }
 
-		local path_display = o.get().refactor_move_to_file.path_display
-		if type(path_display) == "string" then
-			path_display = path_display_strategies[path_display]
-		end
-
 		async.schedule()
 		for i = 1, #files do
 			local path = files[i]
-			table.insert(items, { path, path_display(path), i + 1 })
+			table.insert(items, { path, vim.fn.fnamemodify(path, ":."), i + 1 })
+		end
+
+		local telescope_opts = get_default_telescope_opts(items)
+		if o.get().refactor_move_to_file.telescope_opts then
+			telescope_opts = o.get().refactor_move_to_file.telescope_opts(items, telescope_opts)
 		end
 
 		local item, idx = async.call(vim.ui.select, items, {
@@ -107,7 +96,7 @@ return function(client)
 			format_item = function(item)
 				return item[2]
 			end,
-			telescope = get_telescope_opts(items),
+			telescope = telescope_opts,
 		})
 
 		if not item then -- selection cancelled
