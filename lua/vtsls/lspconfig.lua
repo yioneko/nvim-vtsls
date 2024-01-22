@@ -1,16 +1,14 @@
 local function gen_config()
 	local util = require("lspconfig.util")
 
-	local bin_name = "vtsls"
-	local cmd = { bin_name, "--stdio" }
+	local cmd = { "vtsls", "--stdio" }
 
 	if vim.fn.has("win32") == 1 then
-		cmd = { "cmd.exe", "/C", bin_name, "--stdio" }
+		cmd = { "cmd.exe", "/C", unpack(cmd) }
 	end
 
 	return {
 		default_config = {
-			init_options = { hostInfo = "neovim" },
 			cmd = cmd,
 			filetypes = {
 				"javascript",
@@ -24,12 +22,16 @@ local function gen_config()
 				return util.root_pattern("tsconfig.json", "jsconfig.json")(fname)
 					or util.root_pattern("package.json", ".git")(fname)
 			end,
+			single_file_support = true,
 			settings = {
 				typescript = {
 					updateImportsOnFileMove = "always",
 				},
 				javascript = {
 					updateImportsOnFileMove = "always",
+				},
+				vtsls = {
+					enableMoveToFileCodeAction = true,
 				},
 			},
 		},
