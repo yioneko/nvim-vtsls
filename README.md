@@ -131,7 +131,7 @@ Then executing `vim.lsp.codelens.run()` will open up a quickfix window for refer
 
 Excellent replacement for manually calling `:VtsExec rename_file` or `:VtsRename`.
 
-The following snippet also works for any server supporting `workspace/didRenameFiles` notification.
+You have two ways. You can use [nvim-lsp-file-operations](https://github.com/antosha417/nvim-lsp-file-operations). It has integration with nvim and neo tree. Or you can use the following snippet. It also works for any server supporting `workspace/didRenameFiles` notification.
 
 ```lua
 local path_sep = package.config:sub(1, 1)
@@ -146,7 +146,7 @@ end
 
 local function is_sub_path(path, folder)
   path = trim_sep(path)
-  folder = trim_sep(path)
+  folder = trim_sep(folder)
   if path == folder then
     return true
   else
