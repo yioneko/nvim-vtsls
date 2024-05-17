@@ -189,7 +189,7 @@ api.events.subscribe(api.events.Event.NodeRenamed, function(data)
     return
   end
   local type = ({ file = "file", directory = "folder" })[stat.type]
-  local clients = vim.lsp.get_active_clients({})
+  local clients = vim.lsp.get_clients({})
   for _, client in ipairs(clients) do
     if check_folders_contains(client.workspace_folders, data.old_name) then
       local filters = vim.tbl_get(client.server_capabilities, "workspace", "fileOperations", "didRename", "filters")

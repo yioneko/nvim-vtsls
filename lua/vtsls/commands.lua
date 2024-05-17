@@ -1,11 +1,12 @@
 local o = require("vtsls.config")
 local async = require("vtsls.async")
 local rename = require("vtsls.rename")
+local compat = require("vtsls.compat")
 
 local M = {}
 
 local function get_client(bufnr)
-	local clients = vim.lsp.get_active_clients({ bufnr = bufnr, name = o.get().name })
+	local clients = compat.lsp_get_clients({ bufnr = bufnr, name = o.get().name })
 	if clients and clients[1] then
 		return clients[1]
 	end
@@ -104,7 +105,7 @@ local function code_action(bufnr, client, kinds)
 		},
 		context = {
 			only = kinds,
-			triggerKind = 1,
+			triggerKind = 1, -- vim.lsp.protocol.CodeActionTriggerKind.Invoked
 			diagnostics = lsp_diagnostics,
 		},
 	}, bufnr)

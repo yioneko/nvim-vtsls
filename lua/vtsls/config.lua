@@ -75,21 +75,25 @@ local function default_code_action_handler(err, actions, ctx, config)
 	if #actions == 1 then
 		on_action(actions[1], false)
 	else
-		local tuple = async.call(
+		local item = async.call(
 			vim.ui.select,
 			vim.tbl_map(function(ac)
-				return { ctx.client_id, ac }
+				if vim.fn.has("nvim-0.10") == 1 then
+					return { action = ac, ctx = ctx, _compat_ac = ac }
+				else
+					return { ctx.client_id, ac, _compat_ac = ac }
+				end
 			end, actions),
 			{
 				prompt = "Code actions:",
 				kind = "codeaction",
-				format_item = function(tuple)
-					return tuple[2].title
+				format_item = function(item)
+					return item._compat_ac.title
 				end,
 			}
 		)
-		if tuple then
-			on_action(tuple[2])
+		if item then
+			on_action(item._compat_ac)
 		end
 	end
 end

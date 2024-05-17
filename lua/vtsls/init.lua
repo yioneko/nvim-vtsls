@@ -1,3 +1,5 @@
+local compat = require("vtsls.compat")
+
 local lazy_mod = {
 	commands = function()
 		return require("vtsls.commands")
@@ -82,7 +84,7 @@ return setmetatable({
 		local vtsls_name = require("vtsls.config").get().name
 		if client.name == vtsls_name then
 			pcall(vim.api.nvim_buf_del_user_command, bufnr, "VtsExec")
-			if #vim.lsp.get_active_clients({ name = vtsls_name }) == 0 then
+			if #compat.lsp_get_clients({ name = vtsls_name }) == 0 then
 				pcall(vim.api.nvim_del_user_command, "VtsRename")
 			end
 		end
