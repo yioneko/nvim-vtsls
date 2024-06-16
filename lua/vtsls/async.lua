@@ -24,20 +24,10 @@ function M.exec(func, res, rej)
 end
 
 function M.call(func, ...)
+	local n = select("#", ...)
 	local args = { ... }
 	return co.yield(function(cb)
-		table.insert(args, cb)
-		func(unpack(args))
-	end)
-end
-
-function M.async_call_err(func, ...)
-	local args = { ... }
-	return co.yield(function(cb)
-		table.insert(args, cb)
-		table.insert(args, function(e)
-			error(e)
-		end)
+		args[n + 1] = cb
 		func(unpack(args))
 	end)
 end

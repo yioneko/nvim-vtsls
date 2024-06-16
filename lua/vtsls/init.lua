@@ -57,8 +57,9 @@ return setmetatable({
 			})
 		end
 
-		if not client.commands["editor.action.rename"] and require("vtsls.config").get().refactor_auto_rename then
-			client.commands["editor.action.rename"] = function(command)
+		if require("vtsls.config").get().refactor_auto_rename then
+			compat.register_client_command(client, "editor.action.rename", function(command, ctx)
+				local c = vim.lsp.get_client_by_id(ctx.client_id)
 				for _, renaming in ipairs(command.arguments) do
 					local uri = renaming[1]
 					local pos = renaming[2]
@@ -66,18 +67,19 @@ return setmetatable({
 					vim.api.nvim_set_current_buf(applied_bufnr)
 					local line = pos.line + 1
 					-- TODO: consider copying this util function
-					local col = vim.lsp.util._get_line_byte_from_position(applied_bufnr, pos, client.offset_encoding)
+					local col = vim.lsp.util._get_line_byte_from_position(applied_bufnr, pos, c.offset_encoding)
 					vim.api.nvim_win_set_cursor(0, { line, col })
 					vim.lsp.buf.rename()
 					-- only rename once
 					break
 				end
-			end
+			end)
 		end
 
-		if not client.commands["_typescript.moveToFileRefactoring"] then
-			client.commands["_typescript.moveToFileRefactoring"] = require("vtsls.move_to_file")(client)
-		end
+		compat.register_client_command(client, "_typescript.moveToFileRefactoring", function(command, ctx)
+			local handler = require("vtsls.move_to_file")(vim.lsp.get_client_by_id(ctx.client_id))
+			handler(command)
+		end)
 	end,
 	_on_detach = function(client_id, bufnr)
 		local client = vim.lsp.get_client_by_id(client_id)
