@@ -32,6 +32,18 @@ function M.call(func, ...)
 	end)
 end
 
+function M.async_call_err(func, ...)
+	local n = select("#", ...)
+	local args = { ... }
+	return co.yield(function(cb)
+		args[n + 1] = cb
+		args[n + 2] = function(e)
+			error(e)
+		end
+		func(unpack(args))
+	end)
+end
+
 function M.schedule()
 	return co.yield(function(cb)
 		vim.schedule(cb)
