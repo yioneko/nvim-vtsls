@@ -1,6 +1,24 @@
 local M = {}
 
-M.lsp_get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
+M.lsp_get_clients = function(...)
+	local clients = (vim.lsp.get_clients or vim.lsp.get_active_clients)(...)
+	return vim.tbl_map(function(client)
+		if vim.fn.has("nvim-0.11") == 1 then
+			return client
+		end
+		return setmetatable({
+			is_stopped = function(_, ...)
+				return client.is_stopped(...)
+			end,
+			notify = function(_, ...)
+				return client.notify(...)
+			end,
+			request = function(_, ...)
+				return client.request(...)
+			end,
+		}, { __index = client })
+	end, clients)
+end
 
 local global_registered_commands = {}
 

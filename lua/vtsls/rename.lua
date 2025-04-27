@@ -81,11 +81,11 @@ local function do_rename(client, old_path, new_path)
 		end
 	end
 
-	if client.is_stopped() then
+	if client:is_stopped() then
 		error("client not active")
 	end
 
-	client.notify("workspace/didRenameFiles", {
+	client:notify("workspace/didRenameFiles", {
 		files = {
 			{
 				oldUri = uri_from_path(old_path),

@@ -199,7 +199,7 @@ api.events.subscribe(api.events.Event.NodeRenamed, function(data)
           match_file_operation_filter(filter, data.old_name, type)
           and match_file_operation_filter(filter, data.new_name, type)
         then
-          client.notify(
+          client:notify(
             "workspace/didRenameFiles",
             { files = { { oldUri = uri_from_path(data.old_name), newUri = uri_from_path(data.new_name) } } }
           )
