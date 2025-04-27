@@ -52,7 +52,7 @@ end
 
 function M.request(client, method, params, bufnr)
 	return co.yield(function(cb)
-		client.request(method, params, cb, bufnr)
+		client:request(method, params, cb, bufnr)
 	end)
 end
 
