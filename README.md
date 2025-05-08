@@ -35,6 +35,8 @@ This is OPTIONAL. All the fields are also optional.
 
 ```lua
 require('vtsls').config({
+  -- when silent is false, it will show error messages
+  silent = false,
   -- customize handlers for commands
   handlers = {
     source_definition = function(err, locations) end,
