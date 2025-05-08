@@ -11,7 +11,10 @@ function M.exec(func, res, rej)
 		if co.status(thread) ~= "dead" then
 			local _, err = xpcall(nxt, debug.traceback, step)
 			if err then
-				-- rej(err)
+				local isSilent = require("vtsls.config").get().silent
+				if not isSilent then
+					rej(err)
+				end
 			end
 		elseif ok then
 			res(unpack(args))

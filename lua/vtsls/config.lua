@@ -123,6 +123,7 @@ function M.override(conf)
 	end
 	o.refactor_move_to_file = vim.tbl_extend("force", o.refactor_move_to_file, conf.refactor_move_to_file or {})
 	o.handlers = vim.tbl_extend("force", o.handlers, conf.handlers or {})
+	o.silent = conf.silent or false
 end
 
 function M.get()
