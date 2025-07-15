@@ -19,7 +19,11 @@ local function make_default_locations_handler(title)
 		local client = vim.lsp.get_client_by_id(ctx.client_id)
 		if not locations or vim.tbl_isempty(locations) then
 		elseif #locations == 1 then
-			vim.lsp.util.jump_to_location(locations[1], client.offset_encoding, config.reuse_win)
+			vim.lsp.util.show_document(
+				locations[1],
+				client.offset_encoding,
+				{ reuse_win = config.reuse_win, focus = true }
+			)
 		else
 			local items = vim.lsp.util.locations_to_items(locations, client.offset_encoding)
 
