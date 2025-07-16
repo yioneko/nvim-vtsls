@@ -116,6 +116,7 @@ local o = {
 	refactor_move_to_file = {
 		telescope_opts = nil,
 	},
+	default_silent = false,
 }
 
 function M.override(conf)
@@ -127,6 +128,7 @@ function M.override(conf)
 	end
 	o.refactor_move_to_file = vim.tbl_extend("force", o.refactor_move_to_file, conf.refactor_move_to_file or {})
 	o.handlers = vim.tbl_extend("force", o.handlers, conf.handlers or {})
+	o.silent = conf.silent or o.default_silent
 end
 
 function M.get()
