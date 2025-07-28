@@ -15,7 +15,7 @@ return {
     "typescript.tsx",
   },
 
-  root_markers = { "tsconfig.json", "jsonconfig.json", "package.json", ".git" },
+  root_markers = { 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb', 'bun.lock', '.git' },
 
   settings = {
     typescript = {
