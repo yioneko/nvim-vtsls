@@ -203,6 +203,7 @@ api.events.subscribe(api.events.Event.NodeRenamed, function(data)
             "workspace/didRenameFiles",
             { files = { { oldUri = uri_from_path(data.old_name), newUri = uri_from_path(data.new_name) } } }
           )
+          break
         end
       end
     end
